@@ -21,6 +21,8 @@ class RecorderService: Service() {
         }
     }
 
+    var continueService = true
+
     override fun onCreate() {
         super.onCreate()
         if (versionIs26OrBigger()) {
@@ -32,7 +34,7 @@ class RecorderService: Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         Thread(Runnable {
             try {
-                while(true) {
+                while(continueService) {
                     Thread.sleep(1000)
                     Log.d("Tag", "running...")
                 }
@@ -77,6 +79,7 @@ class RecorderService: Service() {
             stopForeground(true)
         }
         Log.d(TAG, "onDestroy service")
+        continueService = false
         super.onDestroy()
     }
 
