@@ -1,14 +1,18 @@
 package com.estebanlamas.myflightsrecorder
 
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu
 import android.view.MenuItem
+import androidx.core.content.ContextCompat
 
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    private var isRecording = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,7 +20,16 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fabRecord.setOnClickListener { view ->
-            Snackbar.make(view, "Recording flight...", Snackbar.LENGTH_LONG).show()
+            if(isRecording) {
+                stopService(RecorderService.getIntent(this))
+                fabRecord.setImageResource(R.drawable.ic_record)
+                isRecording = false
+            }else{
+                Snackbar.make(view, "Recording flight...", Snackbar.LENGTH_LONG).show()
+                ContextCompat.startForegroundService(this, RecorderService.getIntent(this))
+                fabRecord.setImageResource(R.drawable.ic_stop)
+                isRecording = true
+            }
         }
     }
 
