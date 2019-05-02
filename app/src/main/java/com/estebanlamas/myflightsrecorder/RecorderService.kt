@@ -8,8 +8,10 @@ import android.os.IBinder
 import android.util.Log
 
 import androidx.core.app.NotificationCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
-
+// https://github.com/BlackBlind567/Location_Updates-Background_Foreground/blob/master/app/src/main/java/com/atomsindia/local/LocationUpdatesService.java
 class RecorderService: Service() {
     companion object {
         const val NOTIFICATION_ID = 340
@@ -19,6 +21,10 @@ class RecorderService: Service() {
         fun getIntent(context: Context): Intent {
             return Intent(context, RecorderService::class.java)
         }
+    }
+
+    val fusedLocationProviderClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
     }
 
     var continueService = true
