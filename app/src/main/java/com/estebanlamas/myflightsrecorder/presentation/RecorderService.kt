@@ -1,4 +1,4 @@
-package com.estebanlamas.myflightsrecorder
+package com.estebanlamas.myflightsrecorder.presentation
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,8 +10,12 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.estebanlamas.myflightsrecorder.R
+import com.estebanlamas.myflightsrecorder.data.GoogleLocationRepository
+import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
+import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
 
-class RecorderService: Service(), LocationProvider.LocationCallbacks {
+class RecorderService: Service(), LocationRepository.LocationCallbacks {
 
     companion object {
         const val NOTIFICATION_ID = 340
@@ -23,7 +27,7 @@ class RecorderService: Service(), LocationProvider.LocationCallbacks {
         }
     }
 
-    private val locationProvider = GoogleLocationProvider(this)
+    private val locationProvider = GoogleLocationRepository(this)
 
     // region Service
 
@@ -58,7 +62,9 @@ class RecorderService: Service(), LocationProvider.LocationCallbacks {
 
     private fun createNotification(): Notification {
         createNotificationChannel()
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this,
+            CHANNEL_ID
+        )
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("Recording flight...")
@@ -84,9 +90,9 @@ class RecorderService: Service(), LocationProvider.LocationCallbacks {
 
     // endregion
 
-    // region LocationProvider
+    // region LocationRepository
 
-    override fun updateLocation(location: MyLocation) {
+    override fun updateLocation(location: PlanePosition) {
         Log.d(TAG, "${location.latitude} ${location.longitude} ${location.altitude}")
     }
 

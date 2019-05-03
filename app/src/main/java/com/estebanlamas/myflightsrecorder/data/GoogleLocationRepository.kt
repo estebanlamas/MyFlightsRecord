@@ -1,15 +1,17 @@
-package com.estebanlamas.myflightsrecorder
+package com.estebanlamas.myflightsrecorder.data
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.content.ContextCompat
+import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
+import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
 
-class GoogleLocationProvider(private val context: Context): LocationProvider,
+class GoogleLocationRepository(private val context: Context): LocationRepository,
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
 
@@ -18,7 +20,7 @@ class GoogleLocationProvider(private val context: Context): LocationProvider,
         const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2 * 1000
     }
 
-    lateinit var callbacks: LocationProvider.LocationCallbacks
+    lateinit var callbacks: LocationRepository.LocationCallbacks
 
     private val fusedLocationProviderClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(context)
@@ -36,17 +38,18 @@ class GoogleLocationProvider(private val context: Context): LocationProvider,
     private val locationCallback = object: LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             val location = result.locations[0]
-            val myLocation = MyLocation(
+            val myLocation = PlanePosition(
                 latitude = location.latitude,
                 longitude = location.longitude,
                 altitude = location.altitude,
                 speed = location.speed,
-                bearing = location.bearing)
+                bearing = location.bearing
+            )
             callbacks.updateLocation(myLocation)
         }
     }
 
-    override fun initUpdates(callbacks: LocationProvider.LocationCallbacks) {
+    override fun initUpdates(callbacks: LocationRepository.LocationCallbacks) {
         googleApiClient.connect()
         this.callbacks = callbacks
     }
@@ -62,8 +65,10 @@ class GoogleLocationProvider(private val context: Context): LocationProvider,
 
     override fun onConnected(bundle: Bundle?) {
         val locationRequest = LocationRequest()
-        locationRequest.interval = UPDATE_INTERVAL_IN_MILLISECONDS
-        locationRequest.fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
+        locationRequest.interval =
+            UPDATE_INTERVAL_IN_MILLISECONDS
+        locationRequest.fastestInterval =
+            FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         if ((ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null)

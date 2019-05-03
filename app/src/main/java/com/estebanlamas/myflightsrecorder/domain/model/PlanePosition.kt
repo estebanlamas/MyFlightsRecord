@@ -1,6 +1,6 @@
-package com.estebanlamas.myflightsrecorder
+package com.estebanlamas.myflightsrecorder.domain.model
 
-data class MyLocation(
+data class PlanePosition(
     var latitude: Double,
     var longitude: Double,
     var altitude: Double,

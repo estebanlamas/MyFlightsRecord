@@ -18,7 +18,7 @@
             tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-                android:name=".MainActivity"
+                android:name=".presentation.MainActivity"
                 android:label="@string/app_name"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".RecorderService"/>
+        <service android:name=".presentation.RecorderService"/>
 
     </application>
 

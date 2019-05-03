@@ -1,4 +1,4 @@
-package com.estebanlamas.myflightsrecorder
+package com.estebanlamas.myflightsrecorder.presentation
 
 import android.Manifest
 import android.app.ActivityManager
@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.estebanlamas.myflightsrecorder.R
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -48,7 +49,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startRecord() {
         Snackbar.make(fabRecord, "Recording flight...", Snackbar.LENGTH_LONG).show()
-        ContextCompat.startForegroundService(this, RecorderService.getIntent(this))
+        ContextCompat.startForegroundService(this,
+            RecorderService.getIntent(this)
+        )
         fabRecord.setImageResource(R.drawable.ic_stop)
     }
 
