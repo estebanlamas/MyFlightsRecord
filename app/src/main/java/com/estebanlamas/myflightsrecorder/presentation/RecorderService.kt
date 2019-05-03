@@ -11,6 +11,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.estebanlamas.myflightsrecorder.R
+import com.estebanlamas.myflightsrecorder.data.FlightsDataRepository
 import com.estebanlamas.myflightsrecorder.data.GoogleLocationRepository
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
@@ -27,8 +28,9 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
         }
     }
 
-    private val locationProvider = GoogleLocationRepository(this)
-
+    private val locationRepository = GoogleLocationRepository(this)
+    private val flightRepository = FlightsDataRepository(this)
+    private val flight = flightRepository.createFlight()
     // region Service
 
     override fun onCreate() {
@@ -37,7 +39,7 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
             startForeground(NOTIFICATION_ID, createNotification())
         }
 
-        locationProvider.initUpdates(this)
+        locationRepository.initUpdates(this)
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -52,7 +54,7 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
         if (versionIs26OrBigger()) {
             stopForeground(true)
         }
-        locationProvider.stopUpdates()
+        locationRepository.stopUpdates()
         super.onDestroy()
     }
 
@@ -93,11 +95,13 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
     // region LocationRepository
 
     override fun updateLocation(location: PlanePosition) {
-        Log.d(TAG, "${location.latitude} ${location.longitude} ${location.altitude}")
+        flightRepository.addPlanePosition(flightId = flight.id, planePosition = location)
     }
 
     override fun error() {
-
+        if(!flight.hasTrack()) {
+            flightRepository.removeFlight(flight.id)
+        }
     }
 
     // endregion
