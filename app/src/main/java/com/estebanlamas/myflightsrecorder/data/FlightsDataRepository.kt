@@ -2,26 +2,57 @@ package com.estebanlamas.myflightsrecorder.data
 
 import android.content.Context
 import android.util.Log
+import com.estebanlamas.myflightsrecorder.data.db.AppDatabase
+import com.estebanlamas.myflightsrecorder.data.db.FlightDAO
+import com.estebanlamas.myflightsrecorder.data.db.FlightEntity
+import com.estebanlamas.myflightsrecorder.data.db.PlanePositionDAO
+import com.estebanlamas.myflightsrecorder.data.mapper.planePositionListToDomain
+import com.estebanlamas.myflightsrecorder.data.mapper.toData
+import com.estebanlamas.myflightsrecorder.data.mapper.toDomain
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
-import com.estebanlamas.myflightsrecorder.presentation.RecorderService
+import java.util.*
 
-class FlightsDataRepository(context: Context): FlightRepository {
+class FlightsDataRepository(val context: Context): FlightRepository {
+
+    lateinit var flightDAO: FlightDAO
+    lateinit var planePositionDAO: PlanePositionDAO
+
+    init {
+        val appDatabase = AppDatabase.getDatabase(context = context)
+        appDatabase?.let {
+            flightDAO = it.flightDAO()
+            planePositionDAO = it.planePositionDAO()
+        }
+    }
+
     override fun createFlight(): Flight {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val flight = FlightEntity(Date().time, "")
+        flightDAO.insert(flight)
+        return flight.toDomain()
     }
 
     override fun addPlanePosition(flightId: Long, planePosition: PlanePosition) {
-        Log.d(RecorderService.TAG, "${planePosition.latitude} ${planePosition.longitude} ${planePosition.altitude}")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val planePositionEntity = planePosition.toData(flightId)
+        planePositionDAO.insert(planePositionEntity)
     }
 
     override fun updateFlight(flight: Flight) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        flightDAO.update(flight.toData())
     }
 
-    override fun removeFlight(flightId: Long) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun removeFlight(flight: Flight) {
+        flightDAO.delete(flight.toData())
+    }
+
+    override fun getFlights(): List<Flight> {
+        val flightsEntities = flightDAO.loadFlights()
+        return flightsEntities.toDomain()
+    }
+
+    override fun getPlanePositions(flightId: Long): List<PlanePosition> {
+        val planePositionsEntities = planePositionDAO.getFlightPositions(flightId)
+        return planePositionsEntities.planePositionListToDomain()
     }
 }

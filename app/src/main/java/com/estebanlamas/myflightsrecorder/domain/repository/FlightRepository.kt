@@ -5,7 +5,9 @@ import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 
 interface FlightRepository {
     fun createFlight(): Flight
-    fun addPlanePosition(flightId: Long, planePosition: PlanePosition)
     fun updateFlight(flight: Flight)
-    fun removeFlight(flightId: Long)
+    fun removeFlight(flight: Flight)
+    fun getFlights(): List<Flight>
+    fun getPlanePositions(flightId: Long): List<PlanePosition>
+    fun addPlanePosition(flightId: Long, planePosition: PlanePosition)
 }

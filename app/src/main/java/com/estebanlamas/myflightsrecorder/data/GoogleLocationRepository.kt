@@ -10,6 +10,7 @@ import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
+import java.util.*
 
 class GoogleLocationRepository(private val context: Context): LocationRepository,
     GoogleApiClient.ConnectionCallbacks,
@@ -39,11 +40,11 @@ class GoogleLocationRepository(private val context: Context): LocationRepository
         override fun onLocationResult(result: LocationResult) {
             val location = result.locations[0]
             val myLocation = PlanePosition(
+                date = Date(),
                 latitude = location.latitude,
                 longitude = location.longitude,
                 altitude = location.altitude,
-                speed = location.speed,
-                bearing = location.bearing
+                heading = location.bearing
             )
             callbacks.updateLocation(myLocation)
         }

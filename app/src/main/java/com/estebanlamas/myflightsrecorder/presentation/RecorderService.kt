@@ -64,7 +64,7 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
 
     override fun error() {
         if(!flight.hasTrack()) {
-            flightRepository.removeFlight(flight.id)
+            flightRepository.removeFlight(flight)
         }
     }
 
