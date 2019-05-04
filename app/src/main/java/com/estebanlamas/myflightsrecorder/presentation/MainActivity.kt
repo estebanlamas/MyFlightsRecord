@@ -5,18 +5,26 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.R
+import com.estebanlamas.myflightsrecorder.data.FlightsDataRepository
+import com.estebanlamas.myflightsrecorder.data.db.AppDatabase
+import com.estebanlamas.myflightsrecorder.data.db.FlightDAO
+import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import org.koin.android.ext.android.inject
 
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_LOCATION_CODE = 747
+
+    private val flightRepository: FlightRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +43,15 @@ class MainActivity : AppCompatActivity() {
             fabRecord.setImageResource(R.drawable.ic_stop)
         }else{
             fabRecord.setImageResource(R.drawable.ic_record)
+        }
+
+        val flights = flightRepository.getFlights()
+        flights.forEach {
+            Log.d("QQQ", "flight ${it.id}")
+            val positions = flightRepository.getPlanePositions(it.id)
+            positions.forEach {
+                Log.d("QQQ", "position ${it.date}, ${it.latitude}, ${it.longitude}")
+            }
         }
     }
 

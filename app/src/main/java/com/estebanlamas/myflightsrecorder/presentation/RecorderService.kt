@@ -4,11 +4,11 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import com.estebanlamas.myflightsrecorder.data.FlightsDataRepository
-import com.estebanlamas.myflightsrecorder.data.GoogleLocationRepository
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
+import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
 import com.estebanlamas.myflightsrecorder.versionIs26OrBigger
+import org.koin.android.ext.android.inject
 
 class RecorderService: Service(), LocationRepository.LocationCallbacks {
 
@@ -22,8 +22,8 @@ class RecorderService: Service(), LocationRepository.LocationCallbacks {
         }
     }
 
-    private val locationRepository = GoogleLocationRepository(this)
-    private val flightRepository = FlightsDataRepository(this)
+    private val locationRepository: LocationRepository by inject()
+    private val flightRepository: FlightRepository by inject()
     private val flight = flightRepository.createFlight()
     private val notificationManager = NotificationManager(this)
 

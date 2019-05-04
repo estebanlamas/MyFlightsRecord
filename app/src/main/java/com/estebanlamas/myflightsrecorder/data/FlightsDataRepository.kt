@@ -1,8 +1,5 @@
 package com.estebanlamas.myflightsrecorder.data
 
-import android.content.Context
-import android.util.Log
-import com.estebanlamas.myflightsrecorder.data.db.AppDatabase
 import com.estebanlamas.myflightsrecorder.data.db.FlightDAO
 import com.estebanlamas.myflightsrecorder.data.db.FlightEntity
 import com.estebanlamas.myflightsrecorder.data.db.PlanePositionDAO
@@ -14,18 +11,7 @@ import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import java.util.*
 
-class FlightsDataRepository(val context: Context): FlightRepository {
-
-    lateinit var flightDAO: FlightDAO
-    lateinit var planePositionDAO: PlanePositionDAO
-
-    init {
-        val appDatabase = AppDatabase.getDatabase(context = context)
-        appDatabase?.let {
-            flightDAO = it.flightDAO()
-            planePositionDAO = it.planePositionDAO()
-        }
-    }
+class FlightsDataRepository(val flightDAO: FlightDAO, val planePositionDAO: PlanePositionDAO): FlightRepository {
 
     override fun createFlight(): Flight {
         val flight = FlightEntity(Date().time, "")
