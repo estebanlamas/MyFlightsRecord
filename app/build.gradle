@@ -39,6 +39,9 @@ dependencies {
     // Location
     implementation 'com.google.android.gms:play-services-location:16.0.0'
 
+    // Map
+    implementation "com.google.android.gms:play-services-maps:16.1.0"
+
     // Dependency injection
     implementation 'org.koin:koin-android:2.0.0-rc-2'
 

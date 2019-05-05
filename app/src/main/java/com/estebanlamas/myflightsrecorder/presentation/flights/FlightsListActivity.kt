@@ -3,6 +3,7 @@ package com.estebanlamas.myflightsrecorder.presentation.flights
 import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,7 @@ import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.estebanlamas.myflightsrecorder.presentation.RecorderService
+import com.estebanlamas.myflightsrecorder.presentation.map.MapActivity
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -104,7 +106,7 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
     override fun showFlights(flights: List<Flight>) {
         recyclerViewFlights.layoutManager = LinearLayoutManager(this)
         recyclerViewFlights.adapter = FlightAdapter(flights) {
-            Toast.makeText(this, "${it.id}", Toast.LENGTH_SHORT).show()
+            startActivity(MapActivity.getIntent(it, this@FlightsListActivity))
         }
     }
 }
