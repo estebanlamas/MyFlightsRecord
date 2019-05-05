@@ -8,14 +8,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.estebanlamas.myflightsrecorder.presentation.RecorderService
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import org.koin.android.ext.android.inject
 
 
@@ -99,11 +102,9 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
     }
 
     override fun showFlights(flights: List<Flight>) {
-        flights.forEach {flight ->
-            Log.d("QQQ", "flight ${flight.id}")
-            flight.track.forEach {
-                Log.d("QQQ", "position ${it.date} ${it.latitude} ${it.longitude} ${it.altitude}")
-            }
+        recyclerViewFlights.layoutManager = LinearLayoutManager(this)
+        recyclerViewFlights.adapter = FlightAdapter(flights) {
+            Toast.makeText(this, "${it.id}", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -34,7 +34,11 @@ class FlightsDataRepository(val flightDAO: FlightDAO, val planePositionDAO: Plan
 
     override fun getFlights(): List<Flight> {
         val flightsEntities = flightDAO.loadFlights()
-        return flightsEntities.toDomain()
+        val flights = flightsEntities.toDomain()
+        flights.forEach {
+            it.track = planePositionDAO.getFlightPositions(it.id).planePositionListToDomain()
+        }
+        return flights
     }
 
     override fun getPlanePositions(flightId: Long): List<PlanePosition> {
