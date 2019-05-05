@@ -1,4 +1,4 @@
-package com.estebanlamas.myflightsrecorder.presentation
+package com.estebanlamas.myflightsrecorder.presentation.flights
 
 import android.Manifest
 import android.app.ActivityManager
@@ -11,20 +11,19 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.R
-import com.estebanlamas.myflightsrecorder.data.FlightsDataRepository
-import com.estebanlamas.myflightsrecorder.data.db.AppDatabase
-import com.estebanlamas.myflightsrecorder.data.db.FlightDAO
+import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
+import com.estebanlamas.myflightsrecorder.presentation.RecorderService
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 
 
-class MainActivity : AppCompatActivity() {
+class FlightsListActivity : AppCompatActivity(), FlightsListView {
 
     private val REQUEST_LOCATION_CODE = 747
 
-    private val flightRepository: FlightRepository by inject()
+    private val presenter: FlightsListPresenter by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,14 +44,8 @@ class MainActivity : AppCompatActivity() {
             fabRecord.setImageResource(R.drawable.ic_record)
         }
 
-        val flights = flightRepository.getFlights()
-        flights.forEach {
-            Log.d("QQQ", "flight ${it.id}")
-            val positions = flightRepository.getPlanePositions(it.id)
-            positions.forEach {
-                Log.d("QQQ", "position ${it.date}, ${it.latitude}, ${it.longitude}")
-            }
-        }
+        presenter.attacheView(this)
+        presenter.getFlights()
     }
 
     private fun stopRecord() {
@@ -103,5 +96,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    override fun showFlights(flights: List<Flight>) {
+        flights.forEach {flight ->
+            Log.d("QQQ", "flight ${flight.id}")
+            flight.track.forEach {
+                Log.d("QQQ", "position ${it.date} ${it.latitude} ${it.longitude} ${it.altitude}")
+            }
+        }
     }
 }
