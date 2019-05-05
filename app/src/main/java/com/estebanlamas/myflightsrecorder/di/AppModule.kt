@@ -7,6 +7,7 @@ import com.estebanlamas.myflightsrecorder.data.db.PlanePositionDAO
 import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
 import com.estebanlamas.myflightsrecorder.presentation.flights.FlightsListPresenter
+import com.estebanlamas.myflightsrecorder.presentation.map.MapPresenter
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -16,4 +17,6 @@ val appModule = module {
     single<LocationRepository> { GoogleLocationRepository(androidContext()) }
 
     single { FlightsListPresenter(get() as FlightRepository) }
+
+    single { MapPresenter(get() as FlightRepository) }
 }

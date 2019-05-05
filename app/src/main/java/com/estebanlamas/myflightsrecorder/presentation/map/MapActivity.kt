@@ -2,20 +2,21 @@ package com.estebanlamas.myflightsrecorder.presentation.map
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
+import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
+import org.koin.android.ext.android.inject
 
-class MapActivity: AppCompatActivity(), OnMapReadyCallback {
-    private var googleMap: GoogleMap? = null
+class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
 
     companion object {
-        private const val CENTER_LAT = 40.4322308
-        private const val CENTER_LON = -3.674026
-        private const val DEFAULT_ZOOM = 9.0f
+        private const val DEFAULT_ZOOM = 10.0f
         private const val EXTRA_FLIGHT = "com.estebanlamas.myflightsrecorder.presentation.map.extra.flight"
 
         fun getIntent(flight: Flight, context: Context): Intent {
@@ -25,10 +26,19 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private var googleMap: GoogleMap? = null
+    private val presenter: MapPresenter by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
         setupMapFragment()
+        presenter.attacheView(this)
+        presenter.requestPlanePositions(getFlightExtra())
+    }
+
+    private fun getFlightExtra(): Flight {
+        return intent.getSerializableExtra(EXTRA_FLIGHT) as Flight
     }
 
     private fun setupMapFragment() {
@@ -38,8 +48,21 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
-        googleMap.animateCamera(zoomCammera())
     }
 
-    private fun zoomCammera(): CameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(CENTER_LAT, CENTER_LON), DEFAULT_ZOOM)
+    private fun zoomCamera(lat: Double, lon: Double): CameraUpdate {
+        return CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), DEFAULT_ZOOM)
+    }
+
+    override fun showTrack(track: List<PlanePosition>) {
+        val options = PolylineOptions().width(5f).color(Color.BLUE).geodesic(true)
+        track.forEach {
+            options.add(LatLng(it.latitude, it.longitude))
+        }
+
+        googleMap?.run {
+            addPolyline(options)
+            animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
+        }
+    }
 }

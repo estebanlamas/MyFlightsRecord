@@ -1,5 +1,6 @@
 package com.estebanlamas.myflightsrecorder.domain.model
 
+import java.io.Serializable
 import java.util.*
 
 data class PlanePosition(
@@ -8,4 +9,4 @@ data class PlanePosition(
     var longitude: Double,
     var altitude: Double,
     var heading: Float
-)
+): Serializable
