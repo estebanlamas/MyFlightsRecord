@@ -10,7 +10,6 @@ val roomModule = module {
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, BuildConfig.APPLICATION_ID)
             .fallbackToDestructiveMigration()
-            .allowMainThreadQueries()
             .build()
     }
 
