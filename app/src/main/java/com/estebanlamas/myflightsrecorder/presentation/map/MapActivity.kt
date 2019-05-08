@@ -2,7 +2,11 @@ package com.estebanlamas.myflightsrecorder.presentation.map
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
@@ -12,9 +16,10 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
@@ -36,6 +41,7 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
 
     private var googleMap: GoogleMap? = null
     private val presenter: MapPresenter by inject()
+    private var marker: Marker? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,38 +69,78 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
     }
 
     override fun showTrack(track: List<PlanePosition>) {
-        track.forEachIndexed { index, position ->
-            if(index!=track.size) {
-                val options = PolylineOptions().width(5f).color(getAltitudeColor(position.altitude.toInt())).geodesic(true)
-                options.add(
-                    LatLng(position.latitude, position.longitude),
-                    LatLng(track[index].latitude, track[index].longitude)
-                )
-                googleMap?.addPolyline(options)
-            }
+//        track.forEachIndexed { index, position ->
+//            if(index+1!=track.size) {
+//                val options = PolylineOptions().width(5f).color(getAltitudeColor(position.altitude.toInt())).geodesic(true)
+//                options.add(
+//                    LatLng(position.latitude, position.longitude),
+//                    LatLng(track[index+1].latitude, track[index+1].longitude)
+//                )
+//                googleMap?.addPolyline(options)
+//            }
+//        }
+//        googleMap?.animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
+
+        val options = PolylineOptions().width(5f).color(Color.BLUE).geodesic(true)
+        track.forEach {
+            options.add(LatLng(it.latitude, it.longitude))
         }
-        googleMap?.animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
+
+        googleMap?.run {
+            addPolyline(options)
+            animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
+        }
+
         showAltitudeChart(track)
     }
 
     private fun showAltitudeChart(track: List<PlanePosition>) {
         val chartEntries = arrayListOf<Entry>()
 
-        for (planePosition in track) {
+        track.forEach { planePosition ->
             val time = planePosition.date.time - track[0].date.time
             chartEntries.add(Entry(time.toFloat(), planePosition.altitude.toFloat()))
         }
 
         val lineDataSet = LineDataSet(chartEntries, "Altitud")
-        lineDataSet.color = getColor(R.color.colorPrimaryDark)
+        lineDataSet.color = getColor(R.color.colorPrimary)
+        lineDataSet.setDrawCircles(false)
+        lineDataSet.setDrawValues(false)
+        lineDataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+        lineDataSet.cubicIntensity = 0.5f
+        lineDataSet.fillColor = getColor(R.color.colorPrimary)
+        lineDataSet.fillAlpha = 100
+        lineDataSet.setDrawFilled(true)
+
         val lineData = LineData(lineDataSet)
 
         val x = chart.xAxis
         x.valueFormatter = MyXAxisValueFormatter()
         x.position = XAxis.XAxisPosition.BOTTOM
+        x.setDrawGridLines(false)
 
         chart.data = lineData
         chart.invalidate()
+
+        chart.setOnChartValueSelectedListener(object: OnChartValueSelectedListener{
+            override fun onNothingSelected() {
+            }
+
+            override fun onValueSelected(e: Entry, h: Highlight?) {
+                val d =e.x.toLong()+track[0].date.time
+                val position = track.find { d == it.date.time }
+                if(position!=null) {
+                    marker?.remove()
+                    marker = googleMap?.addMarker(create(position))
+                }
+            }
+        })
+    }
+
+    fun create(planePosition: PlanePosition): MarkerOptions {
+        val latLon = LatLng(planePosition.latitude, planePosition.longitude)
+        return MarkerOptions()
+            .position(latLon)
     }
 
     private fun getAltitudeColor(altitude: Int): Int {
@@ -110,7 +156,7 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
     }
 
     class MyXAxisValueFormatter: ValueFormatter() {
-        val sdf = SimpleDateFormat("mm:ss")
+        val sdf = SimpleDateFormat("mm:ss", Locale.getDefault())
         override fun getFormattedValue(value: Float): String {
             return sdf.format(Date(value.toLong()))
         }
