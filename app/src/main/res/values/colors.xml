@@ -3,4 +3,13 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#EEE</color>
+
+    <color name="color_altitud_0">#FFF</color>
+    <color name="color_altitud_1">#F9F871</color>
+    <color name="color_altitud_2">#FFC75F</color>
+    <color name="color_altitud_3">#FF9671</color>
+    <color name="color_altitud_4">#FF6F91</color>
+    <color name="color_altitud_5">#D65DB1</color>
+    <color name="color_altitud_6">#845EC2</color>
+
 </resources>

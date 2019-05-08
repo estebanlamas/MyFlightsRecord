@@ -45,6 +45,9 @@ dependencies {
     // Dependency injection
     implementation 'org.koin:koin-android:2.0.0-rc-2'
 
+    // Chart
+    implementation 'com.github.PhilJay:MPAndroidChart:3.1.0'
+
     // Database
     implementation "androidx.room:room-runtime:2.0.0"
     kapt "androidx.room:room-compiler:2.0.0"
