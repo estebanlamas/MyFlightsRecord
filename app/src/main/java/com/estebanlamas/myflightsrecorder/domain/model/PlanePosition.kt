@@ -8,5 +8,6 @@ data class PlanePosition(
     var latitude: Double,
     var longitude: Double,
     var altitude: Double,
-    var heading: Float
+    var heading: Float,
+    var speed: Float
 ): Serializable

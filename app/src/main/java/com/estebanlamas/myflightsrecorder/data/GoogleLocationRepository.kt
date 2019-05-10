@@ -44,7 +44,8 @@ class GoogleLocationRepository(private val context: Context): LocationRepository
                 latitude = location.latitude,
                 longitude = location.longitude,
                 altitude = location.altitude,
-                heading = location.bearing
+                heading = location.bearing,
+                speed = location.speed
             )
             callbacks.updateLocation(myLocation)
         }

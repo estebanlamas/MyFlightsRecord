@@ -30,7 +30,8 @@ fun PlanePositionEntity.toDomain(): PlanePosition {
         latitude = latitude,
         longitude = longitude,
         altitude = altitude,
-        heading = heading)
+        heading = heading,
+        speed = speed)
 }
 
 fun PlanePosition.toData(flightId: Long): PlanePositionEntity {
@@ -40,7 +41,8 @@ fun PlanePosition.toData(flightId: Long): PlanePositionEntity {
         longitude = longitude,
         altitude = altitude,
         heading = heading,
-        flightId = flightId)
+        flightId = flightId,
+        speed = speed)
 }
 
 fun List<PlanePositionEntity>.planePositionListToDomain(): List<PlanePosition> {

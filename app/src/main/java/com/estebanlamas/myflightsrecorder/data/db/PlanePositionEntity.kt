@@ -19,5 +19,6 @@ data class PlanePositionEntity(
     var longitude: Double,
     var altitude: Double,
     var heading: Float,
-    var flightId: Long
+    var flightId: Long,
+    var speed: Float
 )
