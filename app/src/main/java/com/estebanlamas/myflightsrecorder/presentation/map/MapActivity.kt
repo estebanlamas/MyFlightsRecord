@@ -6,31 +6,30 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
+import com.estebanlamas.myflightsrecorder.presentation.utils.MyXAxisValueFormatter
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
-import java.text.SimpleDateFormat
-import java.util.*
 
 
-class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
+class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValueSelectedListener {
 
     companion object {
         private const val DEFAULT_ZOOM = 10.0f
         private const val EXTRA_FLIGHT = "com.estebanlamas.myflightsrecorder.presentation.map.extra.flight"
+        private const val ICON_ROTATION = 45
 
         fun getIntent(flight: Flight, context: Context): Intent {
             val intent = Intent(context, MapActivity::class.java)
@@ -42,6 +41,7 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
     private var googleMap: GoogleMap? = null
     private val presenter: MapPresenter by inject()
     private var marker: Marker? = null
+    private lateinit var icon: BitmapDescriptor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +49,16 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
         setupMapFragment()
         presenter.attacheView(this)
         presenter.requestPlanePositions(getFlightExtra())
+        initIcon()
+    }
+
+    private fun initIcon() {
+        val vectorDrawable = ContextCompat.getDrawable(this, R.drawable.ic_airplane)
+        vectorDrawable?.setBounds(0, 0, vectorDrawable.intrinsicWidth, vectorDrawable.intrinsicHeight)
+        val bitmap = Bitmap.createBitmap(vectorDrawable!!.intrinsicWidth, vectorDrawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        vectorDrawable.draw(canvas)
+        icon = BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     private fun getFlightExtra(): Flight {
@@ -68,33 +78,21 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
         return CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), DEFAULT_ZOOM)
     }
 
+    // region MapView
+
     override fun showTrack(track: List<PlanePosition>) {
-//        track.forEachIndexed { index, position ->
-//            if(index+1!=track.size) {
-//                val options = PolylineOptions().width(5f).color(getAltitudeColor(position.altitude.toInt())).geodesic(true)
-//                options.add(
-//                    LatLng(position.latitude, position.longitude),
-//                    LatLng(track[index+1].latitude, track[index+1].longitude)
-//                )
-//                googleMap?.addPolyline(options)
-//            }
-//        }
-//        googleMap?.animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
-
+        // create polyline
         val options = PolylineOptions().width(5f).color(Color.BLUE).geodesic(true)
-        track.forEach {
-            options.add(LatLng(it.latitude, it.longitude))
-        }
+        track.forEach { options.add(LatLng(it.latitude, it.longitude)) }
 
+        // draw track on map and animate it
         googleMap?.run {
             addPolyline(options)
             animateCamera(zoomCamera(track[0].latitude, track[0].longitude))
         }
-
-        showAltitudeChart(track)
     }
 
-    private fun showAltitudeChart(track: List<PlanePosition>) {
+    override fun showAltitudeChart(track: List<PlanePosition>) {
         val chartEntries = arrayListOf<Entry>()
 
         track.forEach { planePosition ->
@@ -111,54 +109,39 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView {
         lineDataSet.fillColor = getColor(R.color.colorPrimary)
         lineDataSet.fillAlpha = 100
         lineDataSet.setDrawFilled(true)
-
         val lineData = LineData(lineDataSet)
-
         val x = chart.xAxis
         x.valueFormatter = MyXAxisValueFormatter()
         x.position = XAxis.XAxisPosition.BOTTOM
         x.setDrawGridLines(false)
-
         chart.data = lineData
         chart.invalidate()
-
-        chart.setOnChartValueSelectedListener(object: OnChartValueSelectedListener{
-            override fun onNothingSelected() {
-            }
-
-            override fun onValueSelected(e: Entry, h: Highlight?) {
-                val d =e.x.toLong()+track[0].date.time
-                val position = track.find { d == it.date.time }
-                if(position!=null) {
-                    marker?.remove()
-                    marker = googleMap?.addMarker(create(position))
-                }
-            }
-        })
+        chart.setOnChartValueSelectedListener(this)
     }
 
-    fun create(planePosition: PlanePosition): MarkerOptions {
-        val latLon = LatLng(planePosition.latitude, planePosition.longitude)
+    override fun showPlanePostion(planePosition: PlanePosition, heading: Float) {
+        marker?.remove()
+        marker = googleMap?.addMarker(createMarker(planePosition, heading))
+    }
+
+    private fun createMarker(planePosition: PlanePosition, heading: Float): MarkerOptions {
         return MarkerOptions()
-            .position(latLon)
+            .icon(icon)
+            .position(LatLng(planePosition.latitude, planePosition.longitude))
+            .anchor(0.5f, 0.5f)
+            .rotation(heading - ICON_ROTATION)
     }
 
-    private fun getAltitudeColor(altitude: Int): Int {
-        return when(altitude) {
-            in 0..50 -> getColor(R.color.color_altitud_0)
-            in 51..100 -> getColor(R.color.color_altitud_1)
-            in 101..200 -> getColor(R.color.color_altitud_2)
-            in 201..400 -> getColor(R.color.color_altitud_3)
-            in 401..600 -> getColor(R.color.color_altitud_4)
-            in 601..900 -> getColor(R.color.color_altitud_4)
-            else -> getColor(R.color.color_altitud_5)
-        }
+    // endregion
+
+    // region OnChartValueSelectedListener
+
+    override fun onNothingSelected() {
     }
 
-    class MyXAxisValueFormatter: ValueFormatter() {
-        val sdf = SimpleDateFormat("mm:ss", Locale.getDefault())
-        override fun getFormattedValue(value: Float): String {
-            return sdf.format(Date(value.toLong()))
-        }
+    override fun onValueSelected(entry: Entry, h: Highlight?) {
+        presenter.onSelectTime(entry.x.toLong())
     }
+
+    // endregion
 }
