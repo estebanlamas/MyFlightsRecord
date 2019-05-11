@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#EEE</color>
+    <color name="colorAccent">#845EC2</color>
 
     <color name="color_altitud_0">#FFF</color>
     <color name="color_altitud_1">#F9F871</color>

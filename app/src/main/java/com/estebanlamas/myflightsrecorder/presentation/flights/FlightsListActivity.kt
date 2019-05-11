@@ -50,7 +50,6 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
         }
 
         presenter.attacheView(this)
-        presenter.getFlights()
     }
 
     private fun stopRecord() {
@@ -68,6 +67,11 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
             RecorderService.getIntent(this)
         )
         fabRecord.setImageResource(R.drawable.ic_stop)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        presenter.getFlights()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

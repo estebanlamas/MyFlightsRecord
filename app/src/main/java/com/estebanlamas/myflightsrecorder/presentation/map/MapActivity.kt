@@ -6,11 +6,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
+import com.estebanlamas.myflightsrecorder.presentation.utils.EditableDialog
 import com.estebanlamas.myflightsrecorder.presentation.utils.MyXAxisValueFormatter
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
@@ -20,6 +23,7 @@ import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
@@ -47,9 +51,27 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
         setupMapFragment()
+        initIcon()
         presenter.attacheView(this)
         presenter.requestPlanePositions(getFlightExtra())
-        initIcon()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_map, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.getItemId()) {
+            R.id.action_delete -> {
+                 true
+            }
+            R.id.action_edit -> {
+                presenter.onClickEdit()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun initIcon() {
@@ -100,7 +122,7 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
             chartEntries.add(Entry(time.toFloat(), planePosition.altitude.toFloat()))
         }
 
-        val lineDataSet = LineDataSet(chartEntries, "Altitud")
+        val lineDataSet = LineDataSet(chartEntries, getString(R.string.altitude))
         lineDataSet.color = getColor(R.color.colorPrimary)
         lineDataSet.setDrawCircles(false)
         lineDataSet.setDrawValues(false)
@@ -130,6 +152,15 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
             .position(LatLng(planePosition.latitude, planePosition.longitude))
             .anchor(0.5f, 0.5f)
             .rotation(heading - ICON_ROTATION)
+    }
+
+    override fun showChangeNameDialog(name: String) {
+        val editableDialog = EditableDialog(name, presenter)
+        editableDialog.show(supportFragmentManager,"")
+    }
+
+    override fun setToolbar(nameFlight: String) {
+        title = nameFlight
     }
 
     // endregion
