@@ -54,6 +54,15 @@ class MapPresenter(private val flightRepository: FlightRepository): Presenter<Ma
         view?.showChangeNameDialog(flight.name)
     }
 
+    fun removeFlight() {
+        launch {
+            async(Dispatchers.IO) {
+                flightRepository.removeFlight(flight)
+            }
+            view?.flightRemoved()
+        }
+    }
+
     // region EditableDialog.Callback
 
     override fun onAcceptChange(newName: String) {

@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.R
@@ -23,7 +24,6 @@ import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_map.*
 import org.koin.android.ext.android.inject
 
@@ -62,9 +62,10 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.getItemId()) {
+        return when (item.itemId) {
             R.id.action_delete -> {
-                 true
+                showDeleteFlightDialog()
+                true
             }
             R.id.action_edit -> {
                 presenter.onClickEdit()
@@ -98,6 +99,18 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
 
     private fun zoomCamera(lat: Double, lon: Double): CameraUpdate {
         return CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), DEFAULT_ZOOM)
+    }
+
+    private fun showDeleteFlightDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(getString(R.string.confirm_remove_flight))
+        builder.setPositiveButton(android.R.string.yes){ _, _ ->
+            presenter.removeFlight()
+        }
+        builder.setNegativeButton(android.R.string.no){ dialog,_ ->
+            dialog.dismiss()
+        }
+        builder.create().show()
     }
 
     // region MapView
@@ -161,6 +174,10 @@ class MapActivity: AppCompatActivity(), OnMapReadyCallback, MapView, OnChartValu
 
     override fun setToolbar(nameFlight: String) {
         title = nameFlight
+    }
+
+    override fun flightRemoved() {
+        finish()
     }
 
     // endregion

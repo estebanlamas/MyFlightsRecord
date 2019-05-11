@@ -8,4 +8,5 @@ interface MapView {
     fun showPlanePostion(planePosition: PlanePosition, heading: Float)
     fun showChangeNameDialog(name: String)
     fun setToolbar(title: String)
+    fun flightRemoved()
 }
