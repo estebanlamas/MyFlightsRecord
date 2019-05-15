@@ -9,4 +9,5 @@
     <string name="cancel">Cancelar</string>
     <string name="confirm_remove_flight">¿Quieres eliminar este vuelo?</string>
     <string name="flight_name">Nombre del vuelo</string>
+    <string name="recording_flight">Grabando vuelo…</string>
 </resources>

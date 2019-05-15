@@ -1,23 +1,22 @@
 package com.estebanlamas.myflightsrecorder.presentation.flights
 
 import android.Manifest
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.estebanlamas.myflightsrecorder.R
 import com.estebanlamas.myflightsrecorder.domain.model.Flight
-import com.estebanlamas.myflightsrecorder.domain.repository.FlightRepository
 import com.estebanlamas.myflightsrecorder.presentation.RecorderService
 import com.estebanlamas.myflightsrecorder.presentation.map.MapActivity
+import com.estebanlamas.myflightsrecorder.presentation.utils.GpsUtils
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -26,7 +25,9 @@ import org.koin.android.ext.android.inject
 
 class FlightsListActivity : AppCompatActivity(), FlightsListView {
 
-    private val REQUEST_LOCATION_CODE = 747
+    companion object {
+        private const val REQUEST_LOCATION_CODE = 747
+    }
 
     private val presenter: FlightsListPresenter by inject()
 
@@ -38,7 +39,7 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
         fabRecord.setOnClickListener {
             when {
                 isServiceRunning() -> stopRecord()
-                hasLocationPermission() -> startRecord()
+                hasLocationPermission() -> checkGps()
                 else -> requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_CODE)
             }
         }
@@ -50,23 +51,6 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
         }
 
         presenter.attacheView(this)
-    }
-
-    private fun stopRecord() {
-        stopService(RecorderService.getIntent(this))
-        fabRecord.setImageResource(R.drawable.ic_record)
-    }
-
-    private fun hasLocationPermission(): Boolean {
-        return (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-    }
-
-    private fun startRecord() {
-        Snackbar.make(fabRecord, "Recording flight...", Snackbar.LENGTH_LONG).show()
-        ContextCompat.startForegroundService(this,
-            RecorderService.getIntent(this)
-        )
-        fabRecord.setImageResource(R.drawable.ic_stop)
     }
 
     override fun onResume() {
@@ -92,6 +76,13 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
             permissions.size == 1 &&
             permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            checkGps()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == GpsUtils.LOCATION_REQUEST) {
             startRecord()
         }
     }
@@ -107,10 +98,42 @@ class FlightsListActivity : AppCompatActivity(), FlightsListView {
         return false
     }
 
+    // private methods
+
+    private fun stopRecord() {
+        stopService(RecorderService.getIntent(this))
+        fabRecord.setImageResource(R.drawable.ic_record)
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun checkGps() {
+        GpsUtils.turnGPSOn(this, object: GpsUtils.OnGpsListener{
+            override fun gpsStatus(isGPSEnable: Boolean) {
+                startRecord()
+            }
+        })
+    }
+
+    private fun startRecord() {
+        Snackbar.make(fabRecord, getString(R.string.recording_flight), Snackbar.LENGTH_LONG).show()
+        ContextCompat.startForegroundService(this, RecorderService.getIntent(this))
+        fabRecord.setImageResource(R.drawable.ic_stop)
+    }
+
+    // endregion
+
+
+    // region FlightsListView
+
     override fun showFlights(flights: List<Flight>) {
         recyclerViewFlights.layoutManager = LinearLayoutManager(this)
         recyclerViewFlights.adapter = FlightAdapter(flights) {
             startActivity(MapActivity.getIntent(it, this@FlightsListActivity))
         }
     }
+
+    // endregion
 }

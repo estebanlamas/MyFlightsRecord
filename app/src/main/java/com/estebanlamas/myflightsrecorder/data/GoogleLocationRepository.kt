@@ -7,19 +7,18 @@ import android.os.Bundle
 import androidx.core.content.ContextCompat
 import com.estebanlamas.myflightsrecorder.domain.model.PlanePosition
 import com.estebanlamas.myflightsrecorder.domain.repository.LocationRepository
+import com.estebanlamas.myflightsrecorder.presentation.utils.GpsUtils
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import java.util.*
 
 class GoogleLocationRepository(private val context: Context): LocationRepository,
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
-
-    companion object {
-        const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 4 * 1000
-        const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2 * 1000
-    }
 
     lateinit var callbacks: LocationRepository.LocationCallbacks
 
@@ -66,14 +65,8 @@ class GoogleLocationRepository(private val context: Context): LocationRepository
     // region ConnectionCallbacks
 
     override fun onConnected(bundle: Bundle?) {
-        val locationRequest = LocationRequest()
-        locationRequest.interval =
-            UPDATE_INTERVAL_IN_MILLISECONDS
-        locationRequest.fastestInterval =
-            FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         if ((ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null)
+            fusedLocationProviderClient.requestLocationUpdates(GpsUtils.getLocationRequest(), locationCallback, null)
         }
     }
 

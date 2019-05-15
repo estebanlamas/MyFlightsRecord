@@ -8,4 +8,5 @@
     <string name="flight_name">Flight Name</string>
     <string name="altitude">Altitude</string>
     <string name="confirm_remove_flight">Do you want to remove this flight?</string>
+    <string name="recording_flight">Recording flight…</string>
 </resources>
